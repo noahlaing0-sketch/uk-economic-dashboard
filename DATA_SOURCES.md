@@ -25,3 +25,19 @@ Data Sources
   January 2026, per a notice on their own site, I deliberately used the older but
   actively-maintained `generator` CSV tool instead, which is confirmed live and current
   as of September 2026.
+
+  Calculated metrics (derived, not fetched)
+
+These are computed in `calculations.py` from the four fetched indicators above —
+not pulled from any external source.
+
+- **Real wage growth** = wage growth rate − CPI inflation rate.
+- **Real interest rate** = Bank Rate − CPI inflation rate.
+- **Taylor Rule rate (simplified)** — the standard Taylor Rule uses an "output gap"
+  (how far GDP is from its potential), which is out of scope for this project since
+  GDP wasn't included as a core indicator. As a substitute, we use unemployment's
+  deviation from its own average across our dataset as a rough proxy for economic
+  slack. This is a simplification of the textbook Taylor Rule, not the real thing,
+  and should be described as such anywhere it's shown or discussed.
+  - Assumed neutral real rate: 2.0%
+  - Inflation target: 2.0% (matches the Bank of England's actual target)
