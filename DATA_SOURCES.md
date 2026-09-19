@@ -41,3 +41,25 @@ not pulled from any external source.
   and should be described as such anywhere it's shown or discussed.
   - Assumed neutral real rate: 2.0%
   - Inflation target: 2.0% (matches the Bank of England's actual target)
+
+## Data alignment decision
+
+Indicators publish at different speeds (CPI and Bank Rate are fastest;
+unemployment lags most, as it comes from the Labour Force Survey). We use an
+**outer join** so each indicator displays its most recent available month,
+rather than truncating everything to the slowest series. Charts and calculations
+involving a lagging series (e.g. the Taylor Rule, which needs unemployment)
+simply end earlier, and each headline metric is labelled with its own date.
+
+## AI usage boundaries
+
+All figures shown or quoted by the AI features are computed in Python and passed
+to the model — the model never calculates or recalls statistics itself. The Q&A
+feature uses tool calling: Claude selects which Python function to run, and those
+functions return computed results from the verified dataset.
+
+The model *is* permitted to add historical or economic context from its general
+knowledge (e.g. the causes of the 2022 inflation spike), but is required to label
+this explicitly as context rather than data. This is a deliberate choice: the
+context makes answers more useful to non-economists, while the labelling keeps
+the data/interpretation boundary clear.
