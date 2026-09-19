@@ -1,4 +1,4 @@
-Live dashboard: https://your-app-url.streamlit.app
+Live dashboard: https://uk-economic-dashboard-xbevuujyxjpvcndtbuepyn.streamlit.app/#uk-economic-conditions-dashboard
 
 # UK Economic Conditions Dashboard
 
