@@ -1,3 +1,5 @@
+Live dashboard: https://your-app-url.streamlit.app
+
 # UK Economic Conditions Dashboard
 
 An interactive dashboard tracking UK inflation, wages, unemployment and interest rates, using live data from the Office for National Statistics and the Bank of England, with AI-generated analysis grounded in verified figures.
