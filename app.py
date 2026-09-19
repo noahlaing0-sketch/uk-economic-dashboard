@@ -205,3 +205,19 @@ if st.button("Generate explanation"):
         "computed in Python — the model is given finished figures and asked only "
         "to explain them, never to calculate or recall statistics."
     )
+st.header("Ask a question")
+st.write(
+    "Ask about UK inflation, wages, unemployment or interest rates since 2015. "
+    "Questions are answered by querying the underlying data — figures are computed "
+    "in Python, not recalled by the AI."
+)
+
+question = st.text_input(
+    "Your question",
+    placeholder="e.g. When was inflation highest since 2019?",
+)
+
+if question:
+    with st.spinner("Looking up the data..."):
+        from ai_qa import answer_question
+        st.markdown(answer_question(df, question))
