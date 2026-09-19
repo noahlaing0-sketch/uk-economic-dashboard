@@ -3,26 +3,65 @@ import pandas as pd
 from pathlib import Path
 
 import re
-def load_cpi(path="data/raw/cpi_raw.csv"):
+def fetch_wage_growth(series_id="kac3", dataset_id="lms"):
     """
-    Loads the raw ONS CPI file and extracts only the monthly figures,
+    Downloads UK wage growth (Average Weekly Earnings, whole economy,
+    total pay, year-on-year 3-month average, %) from the ONS.
+    """
+    url = "https://www.ons.gov.uk/generator"
+    params = {
+        "format": "csv",
+        "uri": f"/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/{series_id}/{dataset_id}",
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+    response = requests.get(url, params=params, headers=headers)
+    response.raise_for_status()
+
+    raw_path = Path("data/raw/wage_growth_raw.csv")
+    raw_path.write_bytes(response.content)
+    return raw_path
+
+
+def fetch_unemployment(series_id="mgsx", dataset_id="lms"):
+    """
+    Downloads the UK unemployment rate (aged 16+, seasonally adjusted, %) from the ONS.
+    """
+    url = "https://www.ons.gov.uk/generator"
+    params = {
+        "format": "csv",
+        "uri": f"/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/{series_id}/{dataset_id}",
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+    response = requests.get(url, params=params, headers=headers)
+    response.raise_for_status()
+
+    raw_path = Path("data/raw/unemployment_raw.csv")
+    raw_path.write_bytes(response.content)
+    return raw_path
+
+
+def load_ons_monthly_series(path, value_column_name):
+    """
+    Loads a raw ONS time-series CSV and extracts only the monthly figures,
     discarding the annual and quarterly rows mixed into the same file.
     """
     df = pd.read_csv(path, header=None, names=["label", "value"])
 
-    # Keep only rows shaped like "2025 DEC" (year, space, 3-letter month)
     monthly_pattern = re.compile(r"^\d{4} [A-Z]{3}$")
     df = df[df["label"].astype(str).str.match(monthly_pattern)].copy()
 
-    # Split "2025 DEC" into a year and a month, then build a real date
     parts = df["label"].str.split(" ", expand=True)
     year = parts[0]
-    month = parts[1].str.capitalize()  # "DEC" -> "Dec", which pandas' date parser expects
+    month = parts[1].str.capitalize()
     df["date"] = pd.to_datetime(year + " " + month, format="%Y %b") + pd.offsets.MonthEnd(0)
 
-    df = df.rename(columns={"value": "cpi_inflation_rate"})
-    df["cpi_inflation_rate"] = df["cpi_inflation_rate"].astype(float)
-    df = df[["date", "cpi_inflation_rate"]].sort_values("date").reset_index(drop=True)
+    df = df.rename(columns={"value": value_column_name})
+    df[value_column_name] = df[value_column_name].astype(float)
+    df = df[["date", value_column_name]].sort_values("date").reset_index(drop=True)
 
     return df
 
@@ -83,28 +122,22 @@ def fetch_cpi(series_id="d7g7", dataset_id="mm23"):
 
     return raw_path
 if __name__ == "__main__":
-    path = fetch_bank_rate()
-    print(f"Saved Bank Rate data to: {path}")
-
-    df = load_bank_rate(path)
-    print(df.head())
-    print(df.tail())
-if __name__ == "__main__":
     bank_rate_path = fetch_bank_rate()
-    print(f"Saved Bank Rate data to: {bank_rate_path}")
-    df = load_bank_rate(bank_rate_path)
-    print(df.head())
-    print(df.tail())
-
-    cpi_path = fetch_cpi()
-    print(f"\nSaved CPI data to: {cpi_path}")
-if __name__ == "__main__":
-    bank_rate_path = fetch_bank_rate()
-    print(f"Saved Bank Rate data to: {bank_rate_path}")
     bank_rate_df = load_bank_rate(bank_rate_path)
-    print(bank_rate_df.tail())
+    print("Bank Rate:")
+    print(bank_rate_df.tail(3))
 
     cpi_path = fetch_cpi()
-    print(f"\nSaved CPI data to: {cpi_path}")
-    cpi_df = load_cpi(cpi_path)
-    print(cpi_df.tail())
+    cpi_df = load_ons_monthly_series(cpi_path, "cpi_inflation_rate")
+    print("\nCPI Inflation:")
+    print(cpi_df.tail(3))
+
+    wage_path = fetch_wage_growth()
+    wage_df = load_ons_monthly_series(wage_path, "wage_growth_rate")
+    print("\nWage Growth:")
+    print(wage_df.tail(3))
+
+    unemployment_path = fetch_unemployment()
+    unemployment_df = load_ons_monthly_series(unemployment_path, "unemployment_rate")
+    print("\nUnemployment:")
+    print(unemployment_df.tail(3))
