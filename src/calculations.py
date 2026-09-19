@@ -44,7 +44,12 @@ def add_derived_metrics(df):
         + 0.5 * (df["cpi_inflation_rate"] - inflation_target)
         - 0.5 * (df["unemployment_rate"] - average_unemployment)
     )
+# How far current inflation is from the Bank of England's 2% target.
+    df["distance_from_target"] = df["cpi_inflation_rate"] - inflation_target
 
+    # What percentile the current month's inflation sits at, relative to
+    # all inflation readings in our dataset (0 = lowest ever seen, 100 = highest).
+    df["cpi_percentile"] = df["cpi_inflation_rate"].rank(pct=True) * 100
     return df
 
 def build_merged_dataset():
@@ -73,3 +78,6 @@ if __name__ == "__main__":
     print(df[["date", "cpi_inflation_rate", "bank_rate", "real_interest_rate",
                "wage_growth_rate", "real_wage_growth", "taylor_rule_rate"]].tail(10))
     print(f"\nTotal rows: {len(df)}")
+    print(df[["date", "cpi_inflation_rate", "distance_from_target", "cpi_percentile",
+               "bank_rate", "real_interest_rate", "wage_growth_rate",
+               "real_wage_growth", "taylor_rule_rate"]].tail(5))
